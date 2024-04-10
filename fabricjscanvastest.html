@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<head>
+<!-- Fabric 
+<!-- 2024-04-06 Christoph Ludwig c.ludwig(at)clx.de -->
+<!-- https://tippvomtibb.de -->
+<!-- https://clx.de -->
+<!-- https://accipiter.tech -->
+<!-- wget https://cdn.jsdelivr.net/npm/fabric -->
+<!-- Download in Unterverzeichnis z.B. fabric und umbennen in fabric.js -->
+<script src='../fabric/fabric.js'></script>
+</head>
+<body>
+<canvas id="myCanvas" class="canvas"></canvas>
+<script type="text/javascript">
+
+    var canvasHeight = 400;
+    var canvasWidth = 400;
+
+    var canvas = new fabric.Canvas('myCanvas');
+    canvas.setHeight(canvasHeight);
+    canvas.setWidth(canvasWidth);
+    canvas.setBackgroundColor('rgb(153, 204, 255)', canvas.renderAll.bind(canvas));
+
+    fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
+
+    function makeRectangle(left, top, text, line1, dir1) { // line und dir koenne hier auch wegfallen wenn man alles nachtraeglich positioniert
+
+        var r = new fabric.Rect({
+        left: left,
+        top: top,
+        strokeWidth: 1,
+        height: 20,
+        width: 50,
+        fill: '#fff',
+        stroke: '#666'
+        });
+
+
+        var t = new fabric.Text(text,{
+                fontFamily: 'Calibri',
+                fontSize: 10,
+                textAlign: 'center',
+                left: left,
+                top: top
+            });
+
+        var l = new fabric.Line([ left-25, top+8, left+25, top+8 ], {
+            fill: 'black',
+            stroke: 'black',
+            strokeWidth: 1,
+            originX:'left',
+            originY:'top',
+            selectable: false,
+            evented: false
+        });
+
+        var b = new fabric.Rect({
+        left: left,
+        top: top+20,
+        strokeWidth: 1,
+        height: 20,
+        width: 50,
+        fill: '#aaa',
+        stroke: '#666'
+        });
+
+        var g = new fabric.Group([r, t, l, b],{
+        });
+
+        g.hasControls = g.hasBorders = false;
+
+        g.line1 = line1; // kann man sich beide Zeilen sparen, wenn man nachtraeglich die Positionen setzt
+        g.dir1 = dir1;
+
+        return g;
+    }
+
+    function makeLine(coords) {
+        return new fabric.Line(coords, {
+        fill: 'red',
+        stroke: 'red',
+        strokeWidth: 5,
+        selectable: false,
+        evented: false,
+        });
+    }
+
+    // die initialen Werte (Startpunkt, Endpunkt bestimmt die Postion der angedockten Rechtecke (center)
+    var relation1 = makeLine([ 50, 50, 100, 100 ]);
+    var relation2 = makeLine([ 150, 50, 150, 150 ]);
+    // Relationen die nachtraeglich gesetzt werden
+    var relation3 = makeLine([ 0, 0, 0, 0 ]);
+    var relation4 = makeLine([ 0, 0, 0, 0 ]);
+    // relation5 ... usw
+    canvas.add(relation1, relation2, relation3, relation4); // ,relation3, ...
+
+    //Variante mit einem array
+    var rect = new Array();
+    rect[1]=makeRectangle(relation1.get('x1'), relation1.get('y1'), 'Test1', relation1, 'S');
+    rect[2]=makeRectangle(relation1.get('x2'), relation1.get('y2'), 'Test2', relation1, 'D');
+    // usw ...
+    rect[3]=makeRectangle(relation2.get('x1'), relation2.get('y1'), 'Test3');
+    rect[4]=makeRectangle(relation2.get('x2'), relation2.get('y2'), 'Test4');
+
+    rect[3].line1=relation2;
+    rect[3].dir1='S';
+    rect[4].line1=relation2;
+    rect[4].dir1='D';
+
+    rect[2].line2=relation3
+    rect[2].line2.set({ 'x1': rect[2].left, 'y1': rect[2].top, 'x2': rect[3].left, 'y2': rect[3].top  });
+    rect[2].dir2='S';
+    rect[3].line2=relation3;
+    rect[2].line2.set({ 'x1': rect[2].left, 'y1': rect[2].top, 'x2': rect[3].left, 'y2': rect[3].top  });
+    rect[3].dir2='D';
+
+    rect[2].line3=relation4
+    rect[2].line3.set({ 'x1': rect[2].left, 'y1': rect[2].top, 'x2': rect[4].left, 'y2': rect[4].top  });
+    rect[2].dir3='S';
+    rect[4].line2=relation4;
+    rect[4].line2.set({ 'x1': rect[2].left, 'y1': rect[2].top, 'x2': rect[4].left, 'y2': rect[4].top  });
+    rect[4].dir2='D';
+
+    var i=1;
+    do {
+        canvas.add(rect[i]);
+        i++;
+    } while(typeof rect[i] !== 'undefined');
+
+    canvas.on('object:moving', function(e) {
+        var p = e.target;
+        p.dir1=='S' && p.line1.set({ 'x1': p.left, 'y1': p.top });
+        p.dir1=='D' && p.line1.set({ 'x2': p.left, 'y2': p.top });
+        p.dir2=='S' && p.line2.set({ 'x1': p.left, 'y1': p.top });
+        p.dir2=='D' && p.line2.set({ 'x2': p.left, 'y2': p.top });
+        p.dir3=='S' && p.line3.set({ 'x1': p.left, 'y1': p.top });
+        p.dir3=='D' && p.line3.set({ 'x2': p.left, 'y2': p.top });
+        // usw ...
+
+        canvas.renderAll();
+    });
+
+    var text = new fabric.Text("tippvomtibb.de", { left: 200, top: 350, fontSize: 40, fontFamily: 'Comic Sans',  fontWeight: 'bold',   shadow: 'rgba(0,0,0,0.5) 5px 5px 5px' });
+    canvas.add(text);
+</script>
+</body>
+</html>
